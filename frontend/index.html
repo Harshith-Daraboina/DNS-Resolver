@@ -1,86 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNS Recursive Resolver | Understand the Web</title>
-    <meta name="description" content="A visual tool to understand how DNS queries hop from Root servers to Authoritative answers.">
-    
-    <!-- Google Fonts -->
+    <title>DNS Resolver System v1.0</title>
+    <meta name="description"
+        content="A visual tool to understand how DNS queries hop from Root servers to Authoritative answers.">
+
+    <!-- Google Fonts for Mono styling -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=VT323&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <div class="background-effects">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-    </div>
+    <div class="monitor">
+        <div class="screen">
+            <div class="scanlines"></div>
 
-    <div class="container">
-        <header class="header">
-            <h1>DNS <span class="gradient-text">Resolver</span></h1>
-            <p>Trace the journey of a domain name to its IP address</p>
-        </header>
+            <div class="terminal-content">
+                <header class="boot-sequence">
+                    <p>INIT DNS SUB-SYSTEM...</p>
+                    <p class="blink">LOADING ROOT SERVERS [OK]</p>
+                    <h1 class="ascii-title">
+                        ____ _ _ ____ ____ _
+                        | _ \| \ | / ___| | _ \ ___ ___ ___ | |_ _____ _ __
+                        | | | | \| \___ \ | |_) / _ \/ __|/ _ \| \ \ / / _ \ '__|
+                        | |_| | |\ |___) | | _ < __/\__ \ (_) | |\ V / __/ | |____/|_| \_|____/ |_| \_\___||___/\___/|_|
+                            \_/ \___|_| </h1>
+                            <p>Enter target domain parameters below.</p>
+                </header>
 
-        <main>
-            <form id="queryForm" class="glass-panel search-box">
-                <div class="input-wrapper">
-                    <input type="text" id="domainInput" placeholder="google.com" required autocomplete="off">
-                    
-                    <select id="typeSelect" class="custom-select">
-                        <option value="A">A Record (IPv4)</option>
-                        <option value="AAAA">AAAA Record (IPv6)</option>
-                        <option value="MX">MX Record (Mail)</option>
-                        <option value="NS">NS Record (Name Server)</option>
-                        <option value="CNAME">CNAME (Alias)</option>
-                    </select>
-
-                    <button type="submit" id="resolveBtn" class="primary-btn">
-                        <span class="btn-text">Resolve</span>
-                        <div class="spinner disabled"></div>
-                    </button>
-                </div>
-            </form>
-
-            <div id="errorAlert" class="alert error hidden"></div>
-
-            <div id="resultsArea" class="results-grid hidden">
-                <!-- Records Section -->
-                <section class="glass-panel result-card">
-                    <div class="card-header">
-                        <div class="icon-pulse"></div>
-                        <h2>Final Answers</h2>
-                    </div>
-                    <ul id="recordsList" class="records-list">
-                        <!-- Injected by JS -->
-                    </ul>
-                </section>
-
-                <!-- Trace Log Section -->
-                <section class="glass-panel trace-card">
-                    <div class="card-header">
-                        <div class="icon-pulse green"></div>
-                        <h2>Resolution Trace Journey</h2>
-                    </div>
-                    <div class="terminal-container">
-                        <div class="terminal-header">
-                            <span class="dot red"></span>
-                            <span class="dot yellow"></span>
-                            <span class="dot green"></span>
-                            <span class="term-title">resolver.log</span>
+                <main>
+                    <form id="queryForm" class="command-line">
+                        <div class="prompt">
+                            <span class="user">root@dns-sys</span>:<span class="path">~</span>$
+                            <span class="cmd">resolve</span>
+                            <input type="text" id="domainInput" class="cli-input domain-arg" placeholder="<domain>"
+                                required autocomplete="off" spellcheck="false" autofocus>
+                            <span class="flag">--type</span>
+                            <select id="typeSelect" class="cli-input type-arg">
+                                <option value="A">A</option>
+                                <option value="AAAA">AAAA</option>
+                                <option value="MX">MX</option>
+                                <option value="NS">NS</option>
+                                <option value="CNAME">CNAME</option>
+                            </select>
+                            <button type="submit" id="resolveBtn" class="cli-btn">[EXECUTE]</button>
                         </div>
-                        <div id="traceLog" class="terminal-body">
-                            <!-- Injected by JS -->
-                        </div>
+                    </form>
+
+                    <div id="loading" class="hidden status-msg">
+                        <span class="spinner">|</span> RESOLVING... PLEASE WAIT...
                     </div>
-                </section>
+
+                    <div id="errorAlert" class="alert error hidden"></div>
+
+                    <div id="resultsArea" class="results-grid hidden">
+                        <!-- Trace Log Section (Now first to act like a stream) -->
+                        <section class="trace-section">
+                            <h2 class="section-title">=== RESOLUTION TRACE ===</h2>
+                            <div id="traceLog" class="trace-output">
+                                <!-- Injected by JS -->
+                            </div>
+                        </section>
+
+                        <!-- Final Answers Section -->
+                        <section class="records-section">
+                            <h2 class="section-title">=== EXTRACTED RECORDS ===</h2>
+                            <ul id="recordsList" class="records-list">
+                                <!-- Injected by JS -->
+                            </ul>
+                        </section>
+                    </div>
+                </main>
+
+                <div class="cursor blink-fast">_</div>
             </div>
-        </main>
+        </div>
     </div>
 
     <script src="app.js"></script>
 </body>
+
 </html>

@@ -3,18 +3,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const domainInput = document.getElementById('domainInput');
     const typeSelect = document.getElementById('typeSelect');
     const resolveBtn = document.getElementById('resolveBtn');
-    const btnText = document.querySelector('.btn-text');
-    const spinner = document.querySelector('.spinner');
+    const loadingStatus = document.getElementById('loading');
     const errorAlert = document.getElementById('errorAlert');
     const resultsArea = document.getElementById('resultsArea');
     const recordsList = document.getElementById('recordsList');
     const traceLog = document.getElementById('traceLog');
 
-    // Use environment variable if available (for production build step injection) or fallback to local
-    // In Vanilla JS, you'd usually replace this string in your CI/CD pipeline.
     const API_BASE_URL = window.API_URL || 'https://dns-resolver-upp3.onrender.com';
-    // For local testing:
     const LOCAL_API_URL = 'http://localhost:8000';
+
+    // Loading Spinner effect
+    const spinnerChars = ['|', '/', '-', '\\'];
+    let spinnerInt;
+    const spinnerSpan = document.querySelector('.spinner');
+
+    function startSpinner() {
+        let i = 0;
+        loadingStatus.classList.remove('hidden');
+        spinnerInt = setInterval(() => {
+            spinnerSpan.textContent = spinnerChars[i];
+            i = (i + 1) % spinnerChars.length;
+        }, 100);
+    }
+
+    function stopSpinner() {
+        clearInterval(spinnerInt);
+        loadingStatus.classList.add('hidden');
+    }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -23,14 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!domain) return;
 
         // UI State: Loading
-        btnText.classList.add('disabled');
-        spinner.classList.remove('disabled');
         resolveBtn.disabled = true;
+        resolveBtn.textContent = "[WORKING...]";
         errorAlert.classList.add('hidden');
         resultsArea.classList.add('hidden');
+        startSpinner();
 
         try {
-            // Priority to LOCAL_API_URL for local testing if running on localhost
             const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? LOCAL_API_URL
                 : API_BASE_URL;
@@ -40,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(url);
 
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('SYSTEM FAULT: ENDPOINT UNREACHABLE / TIMEOUT_FAILURE');
             }
 
             const data = await response.json();
@@ -52,50 +66,32 @@ document.addEventListener('DOMContentLoaded', () => {
             renderResults(data);
 
         } catch (err) {
-            errorAlert.textContent = `Error: ${err.message}`;
+            errorAlert.textContent = `${err.message}`;
             errorAlert.classList.remove('hidden');
         } finally {
             // UI State: Reset
-            btnText.classList.remove('disabled');
-            spinner.classList.add('disabled');
+            stopSpinner();
             resolveBtn.disabled = false;
+            resolveBtn.textContent = "[EXECUTE]";
         }
     });
 
-    function renderResults(data) {
-        // Render Records
-        recordsList.innerHTML = '';
-        if (data.records && data.records.length > 0) {
-            data.records.forEach((rec, index) => {
-                const li = document.createElement('li');
-                li.className = 'record-item';
-                // Add staggered animation delay
-                li.style.animation = `fadeIn ${0.3 + (index * 0.1)}s ease forwards`;
+    function typeWriterEffect(element) {
+        element.style.animation = `typeLine 0.1s ease forwards`;
+    }
 
-                let value = rec.data;
-                if (typeof value === 'object' && value.preference !== undefined) {
-                    value = `Pref: ${value.preference} | ${value.exchange}`;
-                }
-
-                li.innerHTML = `
-                    <span class="badge">TTL: ${rec.ttl}s</span>
-                    <span class="record-val">${value}</span>
-                `;
-                recordsList.appendChild(li);
-            });
-        } else {
-            const li = document.createElement('li');
-            li.innerHTML = '<span style="color: var(--text-muted); font-style: italic;">No records found.</span>';
-            recordsList.appendChild(li);
-        }
-
-        // Render Trace Log
+    // Process and render results sequentially to mimic terminal output stream
+    async function renderResults(data) {
+        resultsArea.classList.remove('hidden');
         traceLog.innerHTML = '';
+        recordsList.innerHTML = '';
+
+        // 1. Stream Trace Logs first
         if (data.trace && data.trace.length > 0) {
-            data.trace.forEach((logEntry, index) => {
+            for (let i = 0; i < data.trace.length; i++) {
+                const logEntry = data.trace[i];
                 const div = document.createElement('div');
 
-                // Extract level (e.g., "INFO: msg")
                 let level = "INFO";
                 let msg = logEntry;
                 if (logEntry.includes(": ")) {
@@ -105,13 +101,66 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 div.className = `log-line log-${level}`;
-                div.textContent = msg;
-                div.style.animationDelay = `${index * 0.05}s`;
+
+                // Format timestamp prefix
+                const now = new Date();
+                const timePrefix = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}] `;
+
+                div.textContent = timePrefix + msg;
                 traceLog.appendChild(div);
-            });
+
+                typeWriterEffect(div);
+
+                // Auto scroll to bottom
+                traceLog.scrollTop = traceLog.scrollHeight;
+
+                // Add artificial delay for that sweet 90s modem feel
+                await new Promise(r => setTimeout(r, 60));
+            }
+        } else {
+            const div = document.createElement('div');
+            div.className = `log-line log-WARNING`;
+            div.textContent = "> NO TRACE DATA RECIEVED.";
+            traceLog.appendChild(div);
+            typeWriterEffect(div);
         }
 
-        // Show Results
-        resultsArea.classList.remove('hidden');
+        // Wait a small moment before showing final answers
+        await new Promise(r => setTimeout(r, 400));
+
+        // 2. Render Final Records
+        if (data.records && data.records.length > 0) {
+            for (let i = 0; i < data.records.length; i++) {
+                const rec = data.records[i];
+                const li = document.createElement('li');
+                li.className = 'record-item';
+
+                let value = rec.data;
+                if (typeof value === 'object' && value.preference !== undefined) {
+                    value = `PREF: ${value.preference} | EXCH: ${value.exchange}`;
+                }
+
+                // Add brackets around IPv4/IPv6 for aesthetics
+                if (data.record_type === 'A' || data.record_type === 'AAAA') {
+                    value = `[${value}]`;
+                }
+
+                li.innerHTML = `
+                    <div class="record-data">
+                        <span class="badge">TTL:${rec.ttl}</span>
+                        <span class="record-val">${value}</span>
+                    </div>
+                `;
+                recordsList.appendChild(li);
+                typeWriterEffect(li);
+                await new Promise(r => setTimeout(r, 100));
+            }
+        } else {
+            const li = document.createElement('li');
+            li.innerHTML = '<span style="color: var(--text-warning);">RECORD_NOT_FOUND (404)</span>';
+            li.className = 'record-item';
+            recordsList.appendChild(li);
+            typeWriterEffect(li);
+        }
     }
 });
