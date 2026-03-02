@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNS Recursive Resolver | Understand the Web</title>
+    <meta name="description" content="A visual tool to understand how DNS queries hop from Root servers to Authoritative answers.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-effects">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <h1>DNS <span class="gradient-text">Resolver</span></h1>
+            <p>Trace the journey of a domain name to its IP address</p>
+        </header>
+
+        <main>
+            <form id="queryForm" class="glass-panel search-box">
+                <div class="input-wrapper">
+                    <input type="text" id="domainInput" placeholder="google.com" required autocomplete="off">
+                    
+                    <select id="typeSelect" class="custom-select">
+                        <option value="A">A Record (IPv4)</option>
+                        <option value="AAAA">AAAA Record (IPv6)</option>
+                        <option value="MX">MX Record (Mail)</option>
+                        <option value="NS">NS Record (Name Server)</option>
+                        <option value="CNAME">CNAME (Alias)</option>
+                    </select>
+
+                    <button type="submit" id="resolveBtn" class="primary-btn">
+                        <span class="btn-text">Resolve</span>
+                        <div class="spinner disabled"></div>
+                    </button>
+                </div>
+            </form>
+
+            <div id="errorAlert" class="alert error hidden"></div>
+
+            <div id="resultsArea" class="results-grid hidden">
+                <!-- Records Section -->
+                <section class="glass-panel result-card">
+                    <div class="card-header">
+                        <div class="icon-pulse"></div>
+                        <h2>Final Answers</h2>
+                    </div>
+                    <ul id="recordsList" class="records-list">
+                        <!-- Injected by JS -->
+                    </ul>
+                </section>
+
+                <!-- Trace Log Section -->
+                <section class="glass-panel trace-card">
+                    <div class="card-header">
+                        <div class="icon-pulse green"></div>
+                        <h2>Resolution Trace Journey</h2>
+                    </div>
+                    <div class="terminal-container">
+                        <div class="terminal-header">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                            <span class="term-title">resolver.log</span>
+                        </div>
+                        <div id="traceLog" class="terminal-body">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
