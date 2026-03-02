@@ -124,7 +124,8 @@ p {
 
 .ascii-title {
     font-size: 1.2rem;
-    white-space: pre-wrap;
+    white-space: pre;
+    overflow-x: auto;
     line-height: 1.1;
     margin: 2rem 0;
     color: var(--text-highlight);
@@ -183,7 +184,6 @@ p {
 
 .domain-arg:focus {
     border-bottom-color: var(--text-primary);
-    background: rgba(51, 255, 0, 0.1);
 }
 
 .type-arg {
