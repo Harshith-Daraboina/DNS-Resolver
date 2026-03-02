@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Use environment variable if available (for production build step injection) or fallback to local
     // In Vanilla JS, you'd usually replace this string in your CI/CD pipeline.
-    const API_BASE_URL = window.API_URL || 'https://dns-project-be.onrender.com';
+    const API_BASE_URL = window.API_URL || 'https://dns-resolver-upp3.onrender.com';
     // For local testing:
     const LOCAL_API_URL = 'http://localhost:8000';
 
