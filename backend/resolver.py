@@ -52,8 +52,10 @@ class Resolver:
                 data, _ = sock.recvfrom(4096)
                 parser = DNSParser(data)
                 return parser.parse()
+            else:
+                self.log(f"Timeout (select) querying {server} for {domain}", "WARNING")
         except socket.timeout:
-            self.log(f"Timeout querying {server} for {domain}", "WARNING")
+            self.log(f"Timeout (socket) querying {server} for {domain}", "WARNING")
         except Exception as e:
             self.log(f"Error querying {server}: {e}", "ERROR")
         finally:
@@ -145,7 +147,7 @@ class Resolver:
             # If we get here, no progress was made via this server
             self.log(f"Server {server_ip} did not provide useful NS or Answers.", "WARNING")
             
-        self.log(f"Failed to resolve {domain}", "ERROR")
+        self.log(f"Failed to resolve {domain}. All servers exhausted or timed out.", "ERROR")
         return []
 
 def print_results(domain: str, record_type_name: str, records: List[dict]):
